@@ -33,7 +33,7 @@ module JIRA
         issues = []
         fetched_results = 0
         begin 
-          response = client.get(client.options[:rest_base_path] + "/search")
+          response = client.get(client.options[:rest_base_path] + "/search?startAt=#{fetched_results}")
           json = parse_json(response.body)
           
           issues = issues + json['issues'].map do |issue|

@@ -44,8 +44,10 @@ describe JIRA::Resource::Issue do
       }
     }
     before(:each) do
-      stub_request(:get, "http://localhost:2990/jira/rest/api/2/search").
+      stub_request(:get, "http://localhost:2990/jira/rest/api/2/search?startAt=0").
                   to_return(:status => 200, :body => get_mock_response('issue.json'))
+      stub_request(:get, "http://localhost:2990/jira/rest/api/2/search?startAt=10").
+                  to_return(:status => 200, :body => get_mock_response('issue.2.json'))
     end
     it_should_behave_like "a resource with a collection GET endpoint"
   end
