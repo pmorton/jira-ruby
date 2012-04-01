@@ -6,7 +6,9 @@ ActiveSupport::Inflector.inflections do |inflector|
 end
 
 require 'uri'
+require 'mixlib/log'
 
+require 'jira/log'
 require 'jira/base'
 require 'jira/base_factory'
 require 'jira/has_many_proxy'
@@ -24,6 +26,9 @@ require 'jira/resource/comment'
 require 'jira/resource/worklog'
 require 'jira/resource/issue'
 
+
 require 'jira/client'
 
 require 'jira/railtie' if defined?(Rails)
+
+JIRA::Log.level = Logger::WARN
