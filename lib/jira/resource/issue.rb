@@ -8,6 +8,8 @@ module JIRA
 
       extend JIRA::Mixins::Searchable
 
+      expand_field :changelog
+
       has_one :reporter,  :class => JIRA::Resource::User,
                           :nested_under => 'fields'
       has_one :assignee,  :class => JIRA::Resource::User,
