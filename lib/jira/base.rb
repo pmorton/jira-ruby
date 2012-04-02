@@ -90,7 +90,9 @@ module JIRA
     # The class methods are never called directly, they are always
     # invoked from a BaseFactory subclass instance.
     def self.all(client, options = {})
-      response = client.get(collection_path(client))
+
+      prefix = @nested_under ? '/' + options[@nested_under.to_sym].prefix  + '/' : '/'
+      response = client.get(collection_path(client,prefix))
       json = parse_json(response.body)
       if collection_attributes_are_nested
         json = json[endpoint_name.pluralize]
@@ -127,6 +129,9 @@ module JIRA
     #   JIRA::Resource::Issue.collection_path
     #     # => /jira/rest/api/2/issue
     def self.collection_path(client, prefix = '/')
+      
+      prefix = prefix.respond_to?('prefix') ? prefix.prefix : prefix.to_s
+      JIRA::Log.debug "Prefix => #{prefix}"
       client.options[:rest_base_path] + prefix + self.endpoint_name
     end
 
@@ -197,7 +202,11 @@ module JIRA
       define_method(resource) do
         attribute = maybe_nested_attribute(attribute_key, options[:nested_under])
         return nil unless attribute
-        child_class.new(client, :attrs => attribute)
+        if child_class < JIRA::Base
+          child_class.new(client, :attrs => attribute)
+        else
+          child_class.new(attribute)
+        end
       end
     end
 
@@ -250,17 +259,29 @@ module JIRA
         child_class_options = {self_class_basename => self}
         attribute = maybe_nested_attribute(attribute_key, options[:nested_under]) || []
         collection = attribute.map do |child_attributes|
-          child_class.new(client, child_class_options.merge(:attrs => child_attributes))
+          if child_class < JIRA::Base
+            child_class.new(client, child_class_options.merge(:attrs => child_attributes))
+          else
+            child_class.new(child_attributes)
+          end
         end
         HasManyProxy.new(self, child_class, collection)
       end
+    end
+
+    def self.expanding_fields
+      @expanding_fields ||= []
+    end
+
+    def self.expand_field(field)
+      expanding_fields.push(field.to_sym)
     end
 
     def self.belongs_to_relationships
       @belongs_to_relationships ||= []
     end
 
-    def self.belongs_to(resource)
+    def self.belongs_to(resource, options = {})
       belongs_to_relationships.push(resource)
       attr_reader resource
       attr_reader "#{resource}_id"
@@ -272,6 +293,10 @@ module JIRA
 
     def self.nested_collections(value)
       @collection_attributes_are_nested = value
+    end
+
+    def self.nested_under(node)
+      @nested_under ||= node
     end
 
     def id
@@ -301,8 +326,15 @@ module JIRA
     def method_missing(method_name, *args, &block)
       if attrs.keys.include? method_name.to_s
         attrs[method_name.to_s]
+      elsif self.class.expanding_fields.include? method_name
+        fetch(true,true)
+        if attrs.keys.include? method_name.to_s
+          attrs[method_name.to_s]
+        else
+          super(method_name, *args, &block)
+        end  
       else
-        super(method_name)
+        super(method_name, *args, &block)
       end
     end
 
@@ -331,9 +363,11 @@ module JIRA
     # Fetches the attributes for the specified resource from JIRA unless
     # the resource is already expanded and the optional force reload flag 
     # is not set
-    def fetch(reload = false)
+    def fetch(reload = false, expand = false)
       return if expanded? && !reload
-      response = client.get(url)
+      uri = url
+      uri << "?expand=#{self.class.expanding_fields.join(',')}" if not self.class.expanding_fields.empty? and expand
+      response = client.get(uri)
       set_attrs_from_response(response)
       @expanded = true
     end
@@ -421,6 +455,12 @@ module JIRA
       else
         self.class.collection_path(client, prefix)
       end
+    end
+
+    def prefix
+      name = ''
+      name << "#{self.class.endpoint_name}"
+      name << "/#{@attrs['id']}" if @attrs['id']
     end
 
     def to_s

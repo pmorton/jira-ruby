@@ -25,6 +25,7 @@ class JIRA::HasManyProxy
   #                               :attrs => attrs,
   #                               :issue => issue)
   def build(attrs = {})
+    JIRA::Log.debug "Building #{target_class} => #{attrs}"
     resource = target_class.new(parent.client, :attrs => attrs, parent.to_sym => parent)
     collection << resource
     resource
@@ -33,6 +34,7 @@ class JIRA::HasManyProxy
   # Forces an HTTP request to fetch all instances of the target class that
   # are associated with the parent
   def all
+    JIRA::Log.debug "Calling all for relation #{self} => #{parent}"
     target_class.all(parent.client, parent.to_sym => parent)
   end
 

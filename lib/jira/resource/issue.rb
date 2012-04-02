@@ -27,7 +27,7 @@ module JIRA
 
       has_many :versions, :nested_under => 'fields'
 
-      has_many :worklogs, :nested_under => ['fields','worklog']
+      has_many :worklogs , :nested_under => ['fields','worklog']
 
       def self.all(client, jql = nil)
         issues = []
