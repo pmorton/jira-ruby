@@ -39,7 +39,33 @@ describe JIRA::Resource::Project do
 
     end
 
+    it "search returns the issues" do
+      
+      query = "assignee = 'admin'"
+
+      stub_request(:get, "http://localhost:2990/jira/rest/api/2/search?jql=" + URI.escape(query+ " project='SAMPLEPROJECT'") + "&startAt=0").
+                   to_return(:status => 200, :body => get_mock_response('project/SAMPLEPROJECT.issues.json'))
+      subject = client.Project.build('key' => key)
+
+      JIRA::Resource::Project.get_scoped_jql(subject).should == "project='SAMPLEPROJECT'"
+      
+      issues = subject.issues(query)
+      issues.length.should == 11
+      issues.each do |issue|
+        issue.class.should == JIRA::Resource::Issue
+        issue.expanded?.should be_false
+      end
+
+
+      
+
+    end
+
+
+
   end
+
+
 
   it "returns a collection of components" do
 

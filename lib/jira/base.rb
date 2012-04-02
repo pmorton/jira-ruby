@@ -92,6 +92,7 @@ module JIRA
     def self.all(client, options = {})
 
       prefix = @nested_under ? '/' + options[@nested_under.to_sym].prefix  + '/' : '/'
+
       response = client.get(collection_path(client,prefix))
       json = parse_json(response.body)
       if collection_attributes_are_nested
