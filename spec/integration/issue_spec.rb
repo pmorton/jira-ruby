@@ -89,11 +89,9 @@ describe JIRA::Resource::Issue do
       stub_request(:get, "http://localhost:2990/jira/rest/api/2/issue/10014?expand=changelog").
                  to_return(:status => 200, :body => get_mock_response('issue/10014.json'))
       first.changelog.length.should == 2
-
     end
 
   end
-
 
   it "should provide a search interface" do
     JIRA::Resource::Issue.build_search_uri(client, "assignee = 'admin'", 0).should == "/jira/rest/api/2/search?startAt=0&jql=assignee%20=%20'admin'"
