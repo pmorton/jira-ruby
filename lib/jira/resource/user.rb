@@ -5,13 +5,6 @@ module JIRA
     end
 
     class User < JIRA::Base
-
-      has_one :displayName, :attribute_key => 'displayName',
-                              :class => String
-
-      has_one :emailAddress, :attribute_key => 'emailAddress',
-                                :class => String
-
       def self.singular_path(client, key, prefix = '/')
         collection_path(client, prefix) + '?username=' + key
       end
