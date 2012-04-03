@@ -258,7 +258,21 @@ module JIRA
       self_class_basename = self.name.split('::').last.downcase.to_sym
       define_method(collection) do
         child_class_options = {self_class_basename => self}
-        attribute = maybe_nested_attribute(attribute_key, options[:nested_under]) || []
+
+        nested_under = options[:nested_under]
+        attribute = maybe_nested_attribute(attribute_key, nested_under) || []
+
+        if options[:nested_under].is_a? String 
+          nested_under_sym = [options[:nested_under].to_s.to_sym]
+        elsif options[:nested_under].is_a? Array 
+          nested_under_sym = options[:nested_under].map {|v| v.to_s.to_sym } || []
+        end
+
+        if attribute.empty? and not self.class.expanding_fields.empty? and (self.class.expanding_fields - nested_under_sym).length < self.class.expanding_fields.length 
+          fetch(true,true)
+          nested_under = options[:nested_under]
+          attribute = maybe_nested_attribute(attribute_key, nested_under) || []
+        end
         collection = attribute.map do |child_attributes|
           if child_class < JIRA::Base
             child_class.new(client, child_class_options.merge(:attrs => child_attributes))
