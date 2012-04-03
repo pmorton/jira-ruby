@@ -89,7 +89,7 @@ module JIRA
 
     # The class methods are never called directly, they are always
     # invoked from a BaseFactory subclass instance.
-    def self.all(client, options = {})
+    def self.all(client, options = {}, &block)
 
       prefix = @nested_under ? '/' + options[@nested_under.to_sym].prefix  + '/' : '/'
 
@@ -98,9 +98,17 @@ module JIRA
       if collection_attributes_are_nested
         json = json[endpoint_name.pluralize]
       end
-      json.map do |attrs|
-        self.new(client, {:attrs => attrs}.merge(options))
+      if block_given?
+        json.each do |attrs|
+          yield self.new(client, {:attrs => attrs}.merge(options))
+        end
+      else
+        all_items = json.map do |attrs|
+          self.new(client, {:attrs => attrs}.merge(options))
+        end
       end
+
+      block_given? ? nil : all_items
     end
 
     # Finds and retrieves a resource with the given ID.

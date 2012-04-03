@@ -18,8 +18,8 @@ module JIRA
       end
 
       # Returns all the issues for this project
-      def issues(jql = nil)
-        self.class.page_jql(client,self.class.get_scoped_jql(self, jql))       
+      def issues(jql = nil, &block)
+        self.class.page_jql(client,self.class.get_scoped_jql(self, jql), &block)       
       end
 
     end

@@ -9,7 +9,7 @@ module JIRA
      url
    end
 
-   def page_jql(client,jql, &block)
+   def page_jql(client, jql, &block)
     items = []
     fetched_results = 0
     begin
@@ -21,16 +21,21 @@ module JIRA
 
       JIRA::Log.debug ":max_results => #{json['maxResults']}"
       JIRA::Log.debug ":total_results => #{json['total']}"
-      
-      items = items + json['issues'].map do |item|
-        client.Issue.build(item)
+      if block_given?
+        json['issues'].map do |item|
+          yield client.Issue.build(item)
+        end
+      else
+        items = items + json['issues'].map do |item|
+          client.Issue.build(item)
+        end
       end
 
       fetched_results += json['maxResults']
 
     end while fetched_results < json['total']
 
-    items 
+    block_given? ? nil : items 
    end
 
    def get_scoped_jql(object,jql = nil)

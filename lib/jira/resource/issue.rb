@@ -38,8 +38,9 @@ module JIRA
 
       has_many :changelog, :nested_under => ['changelog'], :attribute_key => 'histories'
 
-      def self.all(client, jql = nil)
-        page_jql(client,jql)
+      def self.all(client, jql = nil,&block)
+        Log.warn "Blockgiven #{block_given?}"
+        page_jql(client,jql, &block )
       end
 
       def respond_to?(method_name)
