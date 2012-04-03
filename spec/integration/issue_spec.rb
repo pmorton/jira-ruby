@@ -74,11 +74,6 @@ describe JIRA::Resource::Issue do
       first = collection.first
       first.should have_attributes(expected_attributes)
 
-
-      stub_request(:get, "http://localhost:2990/jira/rest/api/2/issue/10014?expand=changelog").
-                 to_return(:status => 200, :body => get_mock_response('issue/10014.json'))
-      first.changelog.length.should == 4
-
     end
 
     it "should expand an item when needed" do
@@ -93,7 +88,7 @@ describe JIRA::Resource::Issue do
 
       stub_request(:get, "http://localhost:2990/jira/rest/api/2/issue/10014?expand=changelog").
                  to_return(:status => 200, :body => get_mock_response('issue/10014.json'))
-      first.changelog.length.should == 4
+      first.changelog.length.should == 2
 
     end
 

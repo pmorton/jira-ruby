@@ -36,6 +36,8 @@ module JIRA
 
       has_many :worklogs , :nested_under => ['fields','worklog']
 
+      has_many :changelog, :nested_under => ['changelog'], :attribute_key => 'histories'
+
       def self.all(client, jql = nil)
         page_jql(client,jql)
       end

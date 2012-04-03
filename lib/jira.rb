@@ -17,6 +17,7 @@ require 'jira/http_error'
 require 'jira/mixins/searchable'
 
 require 'jira/resource/user'
+require 'jira/resource/changelog'
 require 'jira/resource/attachment'
 require 'jira/resource/component'
 require 'jira/resource/issuetype'
